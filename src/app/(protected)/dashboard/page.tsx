@@ -7,9 +7,7 @@ import Header from './_components/Header'
 import LikesChart from './_components/LikeChart'
 import FrontCard from './_components/FrontCard'
 
-type Props = {}
-
-const DashBoard = async (props: Props) => {
+const DashBoard = async () => {
    const currentUser = await onBoardUser()
    if(!currentUser || currentUser.status !== 200) redirect('/sign-in');
    const curr_user_info = await currUserInfo();

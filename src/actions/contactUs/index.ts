@@ -43,7 +43,7 @@ export async function sendContactEmail({
       return {
         statusCode: 500,
         success: false,
-        message: "Error sending email. Try again later.",
+        message: "Error sending email. Try again later.",error,
       };
     }
   }

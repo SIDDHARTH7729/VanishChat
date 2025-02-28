@@ -2,9 +2,8 @@ import React from 'react'
 import Sidebar from '../dashboard/_components/Sidebar'
 import Interactions from './_Components/Interactions'
 
-type Props = {}
 
-const page = (props: Props) => {
+const page = () => {
   return (
     <div>
         <Sidebar/>

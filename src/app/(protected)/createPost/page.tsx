@@ -2,9 +2,7 @@ import React from 'react'
 import Sidebar from '../dashboard/_components/Sidebar'
 import PostCreation from './_Components/PostCreation'
 
-type Props = {}
-
-const page = (props: Props) => {
+const page = () => {
   return (
     <div className='h-full w-full'>
       <Sidebar />

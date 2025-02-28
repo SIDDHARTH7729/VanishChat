@@ -1,5 +1,4 @@
 import { client } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
 
 export const findUser = async (clerkId: string) => {
     const foundUser = await client.user.findUnique({
@@ -50,4 +49,6 @@ export const changeUsernameInDb = async (clerkId: string,username:string,) =>{
             username: true,
         }
     })
+
+    return updatedUser
 }

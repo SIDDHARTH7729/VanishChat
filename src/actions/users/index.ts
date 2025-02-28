@@ -1,8 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation";
 import { changeUsernameInDb, createUser, findUser } from "./queries";
-import { messages } from "@/constants";
-// import { stat } from "fs";
 
 export const onCurrentUser = async () => {
     try {
@@ -50,6 +48,8 @@ export const onBoardUser = async () =>{
     }
 }
 
+
+
 type User = {
     email: string;
     username: string;
@@ -94,7 +94,7 @@ export const changeUsername = async (username:string,clerkId: string) =>{
     const ans = await changeUsernameInDb(clerkId,username);
     return {status:200,data:ans}
    } catch (error) {
-     console.log("Error chaning Username")
+     console.log("Error chaning Username : ",error)
      return {status:500,data:username,messages:"Erroc hanging Username"}
    }
 }
