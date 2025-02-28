@@ -13,10 +13,10 @@ type Props = {
     email: string;
     username: string;
     showname: boolean;
-    likes?: any[];
-    posts?: any[];
-    activities?: any[];
-    notifications?: any[];
+    likes?: Array<{id: string; postId: string}>;
+    posts?: Array<{id: string; content: string; isVisible: boolean; createdAt: string}>;
+    activities?: Array<{id: string; type: string; postId?: string; createdAt: string}>;
+    notifications?: Array<{id: string; message: string; postId?: string; createdAt: string}>;
   };
 };
 
@@ -72,7 +72,7 @@ const Header = ({ userdata }: Props) => {
           </h1>
           <h3 className="text-2xl font-mono">{checkname}</h3>
           <div className="mt-12 text-xl bg-gradient-to-r from-red-500 to-purple-500 bg-clip-text text-transparent">
-            <p>"The digital world awaits your next move! 🌍✨ Thousands of unseen eyes are ready to engage—what will you share today?"</p>
+            <p>&ldquo;The digital world awaits your next move! 🌍✨ Thousands of unseen eyes are ready to engage—what will you share today?&rdquo;</p>
           </div>
           <Link href="/createPost">
             <Button
@@ -89,4 +89,3 @@ const Header = ({ userdata }: Props) => {
 };
 
 export default Header;
-

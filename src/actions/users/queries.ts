@@ -5,39 +5,49 @@ export const findUser = async (clerkId: string) => {
         where: {
             clerkId: clerkId
         },
-        include:{
-            posts : true,
+        select: {
+            id: true,
+            clerkId: true,
+            email: true,
+            username: true,
+            showname: true,
+            posts: true,
             likes: true,
             activities: true,
-            notifications: true     
+            notifications: true,
+            createdAt: true
         }
-    })
+    });
 
     return foundUser;
 }
 
-export const createUser = async (clerkId: string, email: string,username: string) => {
-    const createdUser = client.user.create({
+export const createUser = async (clerkId: string, email: string, username: string) => {
+    const createdUser = await client.user.create({
         data: {
-            clerkId: clerkId,
-            email: email,
-            username: username
+            clerkId,
+            email,
+            username,
+            showname: false
         },
         select: {
+            id: true,
             clerkId: true,
             email: true,
             username: true,
+            showname: true,
             posts: true,
             likes: true,
             activities: true,
-            notifications: true
+            notifications: true,
+            createdAt: true
         }
-    })
+    });
 
     return createdUser;
 }
 
-export const changeUsernameInDb = async (clerkId: string,username:string,) =>{
+export const changeUsernameInDb = async (clerkId: string, username: string) => {
     const updatedUser = await client.user.update({
         where: {
             clerkId: clerkId
@@ -48,7 +58,7 @@ export const changeUsernameInDb = async (clerkId: string,username:string,) =>{
         select: {
             username: true,
         }
-    })
+    });
 
-    return updatedUser
+    return updatedUser;
 }

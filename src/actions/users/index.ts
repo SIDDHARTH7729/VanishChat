@@ -2,62 +2,14 @@ import { currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation";
 import { changeUsernameInDb, createUser, findUser } from "./queries";
 
-export const onCurrentUser = async () => {
-    try {
-        const finding_user = await currentUser();
-        if(!finding_user) redirect('/sign-in');
-        return finding_user
-    } catch (error) {
-        throw error
-    }
-}
-
-export const onBoardUser = async () =>{
-    try {
-        const finding_curr_user = await onCurrentUser();
-        const checking_user_exists_in_DB = await findUser(finding_curr_user.id!)
-        if(checking_user_exists_in_DB){
-            return {
-                status:200,
-                data:{
-                    email:checking_user_exists_in_DB.email,
-                    username:checking_user_exists_in_DB.username,
-                    showname:checking_user_exists_in_DB.showname,
-                    // likes:checking_user_exists_in_DB.likes,
-                    // posts:checking_user_exists_in_DB.posts,
-                    // activities:checking_user_exists_in_DB.activities
-                }
-            }
-        }
-
-        const newUser = await createUser(
-            finding_curr_user.id,
-            finding_curr_user.emailAddresses[0].emailAddress,
-            finding_curr_user.username || "Anonymous"
-        )
-
-        if (!newUser) {
-            return { status: 500, data:null,message:"Error creating user in database" };
-        }
-
-        console.log("User created successfully");
-        return { status: 200, data: newUser };
-    } catch (error) {
-        console.log("Eror onBoarding User",error)
-        return { status: 500, data:null,message:"Something went wrong" };
-    }
-}
-
-
-
 type User = {
     email: string;
     username: string;
     showname: boolean;
-    likes?: any[]; 
-    posts?: any[];
-    activities?: any[];
-    notifications?: any[];
+    likes?: Array<{id: string; postId: string}>;
+    posts?: Array<{id: string; content: string; isVisible: boolean; createdAt: string}>;
+    activities?: Array<{id: string; type: string; postId?: string; createdAt: string}>;
+    notifications?: Array<{id: string; message: string; postId?: string; createdAt: string}>;
 };
 
 type ApiResponse<T = null> = {
@@ -66,50 +18,132 @@ type ApiResponse<T = null> = {
     message?: string;
 };
 
-export const currUserInfo = async ():Promise<ApiResponse<User>> => {
+export const onCurrentUser = async () => {
+    try {
+        const user = await currentUser();
+        if(!user || !user.id) {
+            redirect('/sign-in');
+        }
+        return user;
+    } catch (error) {
+        console.error("Error getting current user:", error);
+        redirect('/sign-in');
+    }
+}
+
+export const onBoardUser = async (): Promise<ApiResponse<User>> => {
+    try {
+        const currentUserData = await onCurrentUser();
+        const existingUser = await findUser(currentUserData.id);
+        
+        if(existingUser) {
+            const userData: User = {
+                email: existingUser.email,
+                username: existingUser.username,
+                showname: existingUser.showname,
+                likes: existingUser.likes.map(like => ({
+                    id: like.id,
+                    postId: like.postId
+                })),
+                posts: existingUser.posts.map(post => ({
+                    id: post.id,
+                    content: post.content,
+                    isVisible: post.isVisible,
+                    createdAt: post.createdAt.toISOString()
+                })),
+                activities: existingUser.activities.map(activity => ({
+                    id: activity.id,
+                    type: activity.type,
+                    postId: activity.postId || undefined,
+                    createdAt: activity.createdAt.toISOString()
+                })),
+                notifications: existingUser.notifications.map(notification => ({
+                    id: notification.id,
+                    message: notification.message,
+                    postId: notification.postId || undefined,
+                    createdAt: notification.createdAt.toISOString()
+                }))
+            };
+            return { status: 200, data: userData };
+        }
+
+        const newUser = await createUser(
+            currentUserData.id,
+            currentUserData.emailAddresses[0].emailAddress,
+            currentUserData.username || "Anonymous"
+        );
+
+        if (!newUser) {
+            return { status: 500, data: null, message: "Error creating user in database" };
+        }
+
+        const newUserData: User = {
+            email: newUser.email,
+            username: newUser.username,
+            showname: newUser.showname,
+            likes: [],
+            posts: [],
+            activities: [],
+            notifications: []
+        };
+
+        return { status: 200, data: newUserData };
+    } catch (error) {
+        console.error("Error onBoarding User:", error);
+        return { status: 500, data: null, message: "Something went wrong" };
+    }
+}
+
+export const currUserInfo = async (): Promise<ApiResponse<User>> => {
     try {
         const curr_user_info = await currentUser();
         if (!curr_user_info || !curr_user_info.id) {
             return { status: 401, data: null, message: "Unauthorized" };
         }
         const cur_user_details = await findUser(curr_user_info.id);
-        if(cur_user_details) return {status:200, data:{
-            email:cur_user_details.email,
-            username:cur_user_details.username,
-            showname:cur_user_details.showname,
-            likes:cur_user_details.likes,
-            posts:cur_user_details.posts,
-            activities:cur_user_details.activities,
-            notifications:cur_user_details.notifications
-        }}
-        return {status:500, data:null,message:"Something went wrong"}
+        if(cur_user_details) {
+            const userData: User = {
+                email: cur_user_details.email,
+                username: cur_user_details.username,
+                showname: cur_user_details.showname,
+                likes: cur_user_details.likes.map(like => ({
+                    id: like.id,
+                    postId: like.postId
+                })),
+                posts: cur_user_details.posts.map(post => ({
+                    id: post.id,
+                    content: post.content,
+                    isVisible: post.isVisible,
+                    createdAt: post.createdAt.toISOString()
+                })),
+                activities: cur_user_details.activities.map(activity => ({
+                    id: activity.id,
+                    type: activity.type,
+                    postId: activity.postId || undefined,
+                    createdAt: activity.createdAt.toISOString()
+                })),
+                notifications: cur_user_details.notifications.map(notification => ({
+                    id: notification.id,
+                    message: notification.message,
+                    postId: notification.postId || undefined,
+                    createdAt: notification.createdAt.toISOString()
+                }))
+            };
+            return { status: 200, data: userData };
+        }
+        return { status: 500, data: null, message: "User not found" };
     } catch (error) {
-        console.log(error)
-        return {status:500,data:null,message:"Something went wrong"}
+        console.error("Error getting user info:", error);
+        return { status: 500, data: null, message: "Something went wrong" };
     }
 }
 
-export const changeUsername = async (username:string,clerkId: string) =>{
+export const changeUsername = async (username: string, clerkId: string): Promise<ApiResponse<string>> => {
    try {
-    const ans = await changeUsernameInDb(clerkId,username);
-    return {status:200,data:ans}
+    const result = await changeUsernameInDb(clerkId, username);
+    return { status: 200, data: result.username };
    } catch (error) {
-     console.log("Error chaning Username : ",error)
-     return {status:500,data:username,messages:"Erroc hanging Username"}
+     console.error("Error changing Username:", error);
+     return { status: 500, data: null, message: "Error changing Username" };
    }
 }
-
-// export type User = {
-//     email: string;
-//     username: string;
-//     showname: boolean;
-//     likes: any[];
-//     posts: any[];
-//     activities: any[];
-//     notifications: any[];
-// };
-
-// type ApiResponse =
-//     | { status: 200; data: User }
-//     | { status: 401; data: string }
-//     | { status: 500; data: never[] };
